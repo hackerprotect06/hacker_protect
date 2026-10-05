@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card p-4 shadow">
+            <h3 class="mb-3 text-green">🌐 فحص الروابط المشبوهة والتصيد (Phishing Checker)</h3>
+            <p class="text-muted">أدخل أي رابط تشك فيه ليقوم الذكاء الاصطناعي بتحليله واكتشاف روابط التصيد والاحتيال.</p>
+            
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">رابط الموقع (URL):</label>
+                    <input type="text" name="url" class="form-control bg-dark text-light border-secondary" placeholder="https://example.com/login" required>
+                </div>
+                <button type="submit" class="btn btn-cyber btn-lg w-100">فحص الرابط الآن</button>
+            </form>
+
+            {% if result %}
+            <div class="mt-4 p-3 bg-dark border border-secondary rounded">
+                <h5>نتيجة تحليل الرابط:</h5>
+                <pre class="text-light" style="white-space: pre-wrap;">{{ result }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

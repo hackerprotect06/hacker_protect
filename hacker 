@@ -1,0 +1,228 @@
+import re
+import tkinter as tk
+from pathlib import Path
+from tkinter import messagebox
+import arabic_reshaper
+from bidi.algorithm import get_display
+from PIL import Image, ImageTk
+
+# دالة لتصحيح اتجاه وشكل النص العربي
+def ar(text):
+    if not text:
+        return ""
+    reshaped_text = arabic_reshaper.reshape(text)
+    return get_display(reshaped_text)
+
+BG = "#f2f3fb"
+CARD_BG = "#ffffff"
+PRIMARY = "#5658d9"
+PRIMARY_HOVER = "#4446bf"
+TEXT = "#20223a"
+MUTED = "#777b91"
+BORDER = "#e1e3ee"
+
+class LoginApp:
+    def __init__(self, root: tk.Tk):
+        self.root = root
+        self.mode = "login"
+        self.show_password = False
+
+        root.title("Hacker protect")
+        root.geometry("440x650")
+        root.minsize(360, 560)
+
+        # --- إضافة صورة الخلفية مع تأثير البطاقة الشفافة ---
+        try:
+            image_path = Path(_file_).parent / "logo.jpeg"
+            bg_image = Image.open(image_path).convert("RGBA")
+            bg_image = bg_image.resize((440, 650), Image.Resampling.LANCZOS)
+
+            # طبقة الشفافية البيضاء للبطاقة
+            card_width, card_height = 380, 580
+            left = (440 - card_width) // 2
+            top = (650 - card_height) // 2
+
+            overlay = Image.new("RGBA", (card_width, card_height), (255, 255, 255, 210))
+            bg_image.paste(overlay, (left, top), overlay)
+
+            self.bg_photo = ImageTk.PhotoImage(bg_image)
+            self.bg_label = tk.Label(root, image=self.bg_photo)
+            self.bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+        except Exception as e:
+            print("خطأ في تحميل الصورة:", e)
+            root.configure(bg=BG)
+
+        # البطاقة الرئيسية
+        self.card = tk.Frame(root, bg="#ffffff", padx=34, pady=28)
+        self.card.place(relx=0.5, rely=0.5, anchor="center", width=380, height=580)
+
+        CARD = "#ffffff"
+
+        # العنوان الرئيسي والفرعي
+        self.heading = tk.Label(self.card, text=ar("ملتقى حمات الوطن"), bg=CARD,
+                                fg=TEXT, font=("Arial", 21, "bold"))
+        self.heading.pack(anchor="e", pady=(14, 4))
+
+        self.subtitle = tk.Label(
+            self.card, text=ar("دخل المعلومات ديالك باش تسجل الدخول للحساب."),
+            bg=CARD, fg=MUTED, font=("Arial", 10), anchor="e", justify="right"
+        )
+        self.subtitle.pack(fill="x", anchor="e", pady=(0, 18))
+
+        # أزرار التبديل (تسجيل الدخول / إنشاء حساب)
+        tabs = tk.Frame(self.card, bg="#f1f2f8", padx=4, pady=4)
+        tabs.pack(fill="x", pady=(0, 18))
+        self.login_tab = tk.Button(tabs, text=ar("تسجيل الدخول"), command=lambda: self.set_mode("login"),
+                                   relief="flat", bd=0, font=("Arial", 10, "bold"), cursor="hand2")
+        self.signup_tab = tk.Button(tabs, text=ar("إنشاء حساب"), command=lambda: self.set_mode("signup"),
+                                    relief="flat", bd=0, font=("Arial", 10, "bold"), cursor="hand2")
+        self.login_tab.pack(side="right", expand=True, fill="x", padx=2)
+        self.signup_tab.pack(side="right", expand=True, fill="x", padx=2)
+
+        # حاوية الاسم الكامل (لإنشاء الحساب)
+        self.name_frame = tk.Frame(self.card, bg=CARD)
+        self.name_label = self._label("الاسم الكامل", parent=self.name_frame)
+        self.name_label.pack(anchor="e", pady=(8, 2))
+        self.name_entry = self._entry("", parent=self.name_frame)
+        self.name_entry.pack(fill="x", pady=(0, 12))
+
+        # حقل البريد الإلكتروني (مصحح النص)
+        self.email_label = self._label("البريد الإلكتروني")
+        self.email_label.pack(anchor="e", pady=(8, 2))
+        self.email_entry = self._entry("")
+        self.email_entry.pack(fill="x", pady=(0, 12))
+
+        # حقل كلمة المرور (مصحح النص)
+        self.password_label = self._label("كلمة المرور")
+        self.password_label.pack(anchor="e", pady=(8, 2))
+
+        password_row = tk.Frame(self.card, bg=CARD)
+        password_row.pack(fill="x", pady=(0, 14))
+
+        self.password_entry = tk.Entry(
+            password_row, justify="right", font=("Arial", 11),
+            relief="flat", bd=0, bg="#ffffff", fg=TEXT,
+            highlightthickness=1, highlightbackground=BORDER, highlightcolor=PRIMARY
+        )
+        self.password_entry.pack(side="right", expand=True, fill="x", ipady=6)
+        self.password_entry.insert(0, ar("دخل كلمة المرور"))
+
+        self.password_entry.bind("<FocusIn>", lambda e: self.clear_placeholder(self.password_entry, "دخل كلمة المرور"))
+        self.password_entry.bind("<FocusOut>", lambda e: self.restore_password_placeholder())
+
+        self.toggle_button = tk.Button(
+            password_row, text=ar("إظهار"), command=self.toggle_password,
+            bg=CARD, fg=PRIMARY, relief="flat", bd=0,
+            font=("Arial", 9), cursor="hand2"
+        )
+        self.toggle_button.pack(side="left", padx=(7, 0))
+
+        # الخيارات الإضافية
+        self.options = tk.Frame(self.card, bg=CARD)
+        self.options.pack(fill="x", pady=(0, 16))
+
+        self.remember_var = tk.BooleanVar(value=False)
+        self.remember = tk.Checkbutton(
+            self.options, text=ar("تذكرني"), variable=self.remember_var,
+            bg=CARD, fg=MUTED, activebackground=CARD,
+            font=("Arial", 9), selectcolor=CARD
+        )
+        self.remember.pack(side="right")
+
+        self.forgot = tk.Button(
+            self.options, text=ar("نسيت كلمة المرور؟"), command=self.forgot_password,
+            bg=CARD, fg=PRIMARY, activebackground=CARD,
+            relief="flat", bd=0, font=("Arial", 9), cursor="hand2"
+        )
+        self.forgot.pack(side="left")
+
+        # زر الإرسال
+        self.submit_button = tk.Button(
+            self.card, text=ar("دخول"), command=self.submit,
+            bg=PRIMARY, fg="white", activebackground=PRIMARY_HOVER,
+            activeforeground="white", relief="flat", bd=0,
+            font=("Arial", 11, "bold"), cursor="hand2", pady=12
+        )
+        self.submit_button.pack(fill="x", pady=(0, 10))
+
+        # نص الحالة والشروط
+        self.status = tk.Label(
+            self.card, text="", bg=CARD, fg=MUTED,
+            font=("Arial", 9), wraplength=330, justify="center"
+        )
+        self.status.pack(fill="x")
+
+        self.terms = tk.Label(
+            self.card, text=ar("بإنشاء حساب، كتوافق على شروط الاستخدام وسياسة الخصوصية."),
+            bg=CARD, fg=MUTED, font=("Arial", 8), wraplength=330, justify="center"
+        )
+        self.terms.pack(fill="x", pady=(8, 0))
+
+        self.set_mode("login")
+
+    def _label(self, text, parent=None):
+        target = parent if parent else self.card
+        # معالجة النص بـ ar() هنا لتصحيح جميع العناوين تلقائياً
+        return tk.Label(target, text=ar(text), bg="#ffffff", fg=TEXT, font=("Arial", 10, "bold"), anchor="e")
+
+    def _entry(self, placeholder="", parent=None):
+        target = parent if parent else self.card
+        entry = tk.Entry(target, justify="right", font=("Arial", 11),
+                         relief="flat", bd=0, bg="#ffffff", fg=TEXT,
+                         highlightthickness=1, highlightbackground=BORDER, highlightcolor=PRIMARY)
+        if placeholder:
+            # إذا كان النص إنجليزي/إيميل يوضع كما هو، أما النص العربي فيُمرر عبر ar()
+            entry_text = ar(placeholder) if any("\u0600" <= c <= "\u06FF" for c in placeholder) else placeholder
+            entry.insert(0, entry_text)
+        return entry
+
+    def set_mode(self, mode):
+        self.mode = mode
+        if mode == "login":
+            self.heading.config(text=ar("مرحبا بعودتك"))
+            self.subtitle.config(text=ar("دخل المعلومات ديالك باش تسجل الدخول للحساب."))
+            self.name_frame.pack_forget()
+            self.submit_button.config(text=ar("دخول"))
+            self.login_tab.config(bg="#ffffff", fg=PRIMARY)
+            self.signup_tab.config(bg="#f1f2f8", fg=MUTED)
+        else:
+            self.heading.config(text=ar("إنشاء حساب جديد"))
+            self.subtitle.config(text=ar("عمر المعلومات التالية باش تنشئ الحساب ديالك."))
+            self.name_frame.pack(fill="x", before=self.email_label)
+            self.submit_button.config(text=ar("إنشاء حساب"))
+            self.signup_tab.config(bg="#ffffff", fg=PRIMARY)
+            self.login_tab.config(bg="#f1f2f8", fg=MUTED)
+
+    def toggle_password(self):
+        self.show_password = not self.show_password
+        if self.show_password:
+            self.password_entry.config(show="")
+            self.toggle_button.config(text=ar("إخفاء"))
+        else:
+            if self.password_entry.get() != ar("دخل كلمة المرور"):
+                self.password_entry.config(show="•")
+            self.toggle_button.config(text=ar("إظهار"))
+
+    def clear_placeholder(self, entry, placeholder):
+        if entry.get() == ar(placeholder):
+            entry.delete(0, tk.END)
+            if placeholder == "دخل كلمة المرور" and not self.show_password:
+                entry.config(show="•")
+
+    def restore_password_placeholder(self):
+        if not self.password_entry.get():
+            self.password_entry.config(show="")
+            self.password_entry.insert(0, ar("دخل كلمة المرور"))
+
+    def forgot_password(self):
+        messagebox.showinfo(ar("نسيت كلمة المرور"), ar("تم إرسال تعليمات إعادة التعيين."))
+
+    def submit(self):
+        action = "تسجيل الدخول..." if self.mode == "login" else "إنشاء الحساب..."
+        self.status.config(text=ar(f"جاري {action}"))
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = LoginApp(root)
+    root.mainloop()

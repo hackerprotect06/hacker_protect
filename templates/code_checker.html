@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card p-4 shadow">
+            <h3 class="mb-3 text-green">🔍 أداة فحص الأكواد بالأمن السيبراني والذكاء الاصطناعي</h3>
+            <p class="text-muted">قم بلصق الكود البرمجي الخاص بك هنا ليقوم المحرك الذكي باكتشاف الثغرات الأمنية تقديم تقرير شامل.</p>
+            
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">الكود البرمجي:</label>
+                    <textarea name="code" class="form-control bg-dark text-light border-secondary" rows="8" placeholder="ضع الكود هنا..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-cyber btn-lg w-100">بدء التحليل الأمني الآن</button>
+            </form>
+
+            {% if result %}
+            <div class="mt-4 p-3 bg-dark border border-secondary rounded">
+                <h5>نتيجة التقرير:</h5>
+                <pre class="text-light" style="white-space: pre-wrap;">{{ result }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

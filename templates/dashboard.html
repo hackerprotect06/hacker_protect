@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3 class="mb-4 text-green">📊 سجل العمليات والفحوصات</h3>
+<div class="card p-3">
+    <table class="table table-dark table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>نوع الخدمة</th>
+                <th>البيانات المفحوصة</th>
+                <th>التاريخ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for scan in scans %}
+            <tr>
+                <td>{{ scan[0] }}</td>
+                <td><span class="badge bg-primary">{{ scan[1] }}</span></td>
+                <td><code>{{ scan[2] }}</code></td>
+                <td>{{ scan[3] }}</td> <!-- تم التصحيح هنا من scan[4] إلى scan[3] -->
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center">لا توجد عمليات فحص سابقة</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

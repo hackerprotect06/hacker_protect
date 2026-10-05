@@ -1,0 +1,58 @@
+import tkinter as tk
+from tkinter import messagebox
+import arabic_reshaper
+from bidi.algorithm import get_display
+
+# دالة لإصلاح وترتيب النص العربي للواجهة الداخلية
+def fix_arabic(text):
+    reshaped_text = arabic_reshaper.reshape(text)
+    return get_display(reshaped_text)
+
+def check_login():
+    username = username_entry.get()
+    password = password_entry.get()
+    
+    # التحقق من البيانات (مثال تجريبي)
+    if username == "admin" and password == "1234":
+        messagebox.showinfo(fix_arabic("نجاح"), fix_arabic("تم تسجيل الدخول بنجاح!"))
+    else:
+        messagebox.showerror(fix_arabic("خطأ"), fix_arabic("اسم المستخدم أو كلمة المرور غير صحيحة"))
+
+# إنشاء النافذة الرئيسية
+root = tk.Tk()
+
+# جعل عنوان النافذة نصا<064b> مباشرا<064b> لتجنب تشوه الحروف في شريط العنوان
+root.title("صفحة تسجيل الدخول")
+root.geometry("350x250")
+root.configure(bg="#f0f0f0")
+
+# العنوان الداخلي
+title_label = tk.Label(root, text=fix_arabic("تسجيل الدخول"), font=("Arial", 16, "bold"), bg="#f0f0f0")
+title_label.pack(pady=15)
+
+# حقل اسم المستخدم
+username_label = tk.Label(root, text=fix_arabic("اسم المستخدم:"), font=("Arial", 10), bg="#f0f0f0")
+username_label.pack(anchor="e", padx=40)
+username_entry = tk.Entry(root, width=30, font=("Arial", 10), justify="right")
+username_entry.pack(pady=5)
+
+# حقل كلمة المرور
+password_label = tk.Label(root, text=fix_arabic("كلمة المرور:"), font=("Arial", 10), bg="#f0f0f0")
+password_label.pack(anchor="e", padx=40)
+password_entry = tk.Entry(root, width=30, font=("Arial", 10), show="*", justify="right")
+password_entry.pack(pady=5)
+
+# زر الدخول
+login_button = tk.Button(root, text=fix_arabic("دخول"), font=("Arial", 10, "bold"), bg="#4CAF50", fg="white", width=15, command=check_login)
+login_button.pack(pady=20)
+
+
+
+
+
+
+
+
+
+
+root.mainloop()
